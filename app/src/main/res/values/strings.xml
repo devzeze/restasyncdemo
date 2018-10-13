@@ -2,7 +2,7 @@
 
     <string name="app_name">RestAsyncDemo</string>
     <string name="tab_text_1">RxJava</string>
-    <string name="tab_text_2">Tab 2</string>
+    <string name="tab_text_2">Promise</string>
     <string name="tab_text_3">Tab 3</string>
 
 </resources>

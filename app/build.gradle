@@ -45,4 +45,7 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:3.0.1"
     implementation "com.squareup.okhttp3:okhttp-urlconnection:3.0.1"
     implementation "com.squareup.okhttp3:logging-interceptor:3.4.1"
+
+    implementation 'org.jdeferred.v2:jdeferred-core:2.0.0-beta1'
+
 }

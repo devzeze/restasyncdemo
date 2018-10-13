@@ -12,7 +12,7 @@ import android.widget.Button;
 import com.devzeze.restasyncdemo.model.Posts;
 import com.devzeze.restasyncdemo.model.Users;
 import com.devzeze.restasyncdemo.utils.ApiClient;
-import com.devzeze.restasyncdemo.utils.ApiService;
+import com.devzeze.restasyncdemo.utils.ApiRxJavaService;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class RxJavaFragment extends Fragment {
 
     private static final String TAG = "RxJavaFragment";
 
-    private ApiService apiService;
+    private ApiRxJavaService apiRxJavaService;
     private CompositeDisposable disposable = new CompositeDisposable();
 
     public RxJavaFragment() {
@@ -49,7 +49,7 @@ public class RxJavaFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        apiService = ApiClient.getClient(getContext().getApplicationContext()).create(ApiService.class);
+        apiRxJavaService = ApiClient.getClientRxJava(getContext().getApplicationContext()).create(ApiRxJavaService.class);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class RxJavaFragment extends Fragment {
 
     private void performSimpleCall() {
 
-        disposable.add(apiService.fetchAllUsers()
+        disposable.add(apiRxJavaService.fetchAllUsers()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableSingleObserver<List<Users>>() {
@@ -100,10 +100,10 @@ public class RxJavaFragment extends Fragment {
 
     private void performZipCall() {
 
-        disposable.add(Single.zip(apiService.fetchAllUsers()
+        disposable.add(Single.zip(apiRxJavaService.fetchAllUsers()
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread()),
-                apiService.fetchAllUsers()
+                apiRxJavaService.fetchAllUsers()
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread()),
                 new BiFunction<List<Users>, List<Users>, String>() {
@@ -131,7 +131,7 @@ public class RxJavaFragment extends Fragment {
 
     private void performFlatMapCall() {
 
-        disposable.add(apiService.fetchAllUsers()
+        disposable.add(apiRxJavaService.fetchAllUsers()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .toObservable()
@@ -144,7 +144,7 @@ public class RxJavaFragment extends Fragment {
                 .flatMap(new Function<Users, ObservableSource<List<Posts>>>() {
                     @Override
                     public ObservableSource<List<Posts>> apply(Users user) throws Exception {
-                        return apiService.fetchPostersByUser(user.getId())
+                        return apiRxJavaService.fetchPostersByUser(user.getId())
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .toObservable();

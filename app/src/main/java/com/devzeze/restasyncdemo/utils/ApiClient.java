@@ -20,7 +20,7 @@ public class ApiClient {
     private static int REQUEST_TIMEOUT = 60;
     private static OkHttpClient okHttpClient;
 
-    public static Retrofit getClient(Context context) {
+    public static Retrofit getClientRxJava(Context context) {
 
         if (okHttpClient == null) {
             initOkHttp(context);
@@ -31,6 +31,22 @@ public class ApiClient {
                     .baseUrl(Const.BASE_URL)
                     .client(okHttpClient)
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return retrofit;
+    }
+
+    public static Retrofit getClientPromise(Context context) {
+
+        if (okHttpClient == null) {
+            initOkHttp(context);
+        }
+
+        if (retrofit == null) {
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(Const.BASE_URL)
+                    .client(okHttpClient)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
