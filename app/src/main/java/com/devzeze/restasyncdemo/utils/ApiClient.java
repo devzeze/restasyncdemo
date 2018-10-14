@@ -60,7 +60,7 @@ public class ApiClient {
                 .writeTimeout(REQUEST_TIMEOUT, TimeUnit.SECONDS);
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
         httpClient.addInterceptor(interceptor);
 

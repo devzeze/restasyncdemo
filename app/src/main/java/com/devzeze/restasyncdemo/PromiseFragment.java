@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.devzeze.restasyncdemo.model.Posts;
 import com.devzeze.restasyncdemo.model.Todos;
 import com.devzeze.restasyncdemo.model.Users;
 import com.devzeze.restasyncdemo.utils.ApiClient;
@@ -17,10 +18,15 @@ import com.devzeze.restasyncdemo.utils.PromisesUtil;
 
 import org.jdeferred2.DeferredManager;
 import org.jdeferred2.DoneCallback;
+import org.jdeferred2.DonePipe;
 import org.jdeferred2.Promise;
 import org.jdeferred2.impl.DefaultDeferredManager;
+import org.jdeferred2.multiple.AllValues;
+import org.jdeferred2.multiple.MasterProgress;
 import org.jdeferred2.multiple.MultipleResults2;
+import org.jdeferred2.multiple.OneValue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -49,7 +55,7 @@ public class PromiseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_rx_java, container, false);
+        View view = inflater.inflate(R.layout.fragment_async, container, false);
 
         Button simpleCall = view.findViewById(R.id.simple_call);
         simpleCall.setOnClickListener((View) -> {
@@ -61,9 +67,9 @@ public class PromiseFragment extends Fragment {
             performWhenCall();
         });
 
-        Button flatmapCall = view.findViewById(R.id.flatmap_call);
+        Button flatmapCall = view.findViewById(R.id.map_call);
         flatmapCall.setOnClickListener((View v) -> {
-            performFlatMapCall();
+            performMap();
         });
 
         return view;
@@ -104,49 +110,39 @@ public class PromiseFragment extends Fragment {
         });
     }
 
-    private void performFlatMapCall() {
+    private void performMap() {
 
-        /*
-        disposable.add(apiRxJavaService.fetchAllUsers()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .toObservable()
-                .flatMap(new Function<List<Users>, ObservableSource<Users>>() {
+        DeferredManager dm = new DefaultDeferredManager();
+
+        long startTime = System.currentTimeMillis();
+        PromisesUtil.request(apiPromisesService.fetchAllUsers())
+                .then(new DonePipe<List<Users>, AllValues, Throwable, MasterProgress>() {
                     @Override
-                    public ObservableSource<Users> apply(List<Users> users) throws Exception {
-                        return Observable.fromIterable(users);
-                    }
-                })
-                .flatMap(new Function<Users, ObservableSource<List<Posts>>>() {
-                    @Override
-                    public ObservableSource<List<Posts>> apply(Users user) throws Exception {
-                        return apiRxJavaService.fetchPostersByUser(user.getId())
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .toObservable();
-                    }
-                })
-                .subscribeWith(new DisposableObserver<List<Posts>>() {
-                    @Override
-                    public void onNext(List<Posts> posters) {
-                        if (posters != null && posters.size() > 0) {
-                            Log.d(TAG, "onNext - userId " + posters.get(0).getUserId() + "; posters " + posters.size() + ";");
-                        } else {
-                            Log.d(TAG, "onNext - empty posters");
+                    public Promise<AllValues, Throwable, MasterProgress> pipeDone(List<Users> result) {
+
+                        List<Promise> list = new ArrayList<>(result.size());
+                        for (Users user : result) {
+                            list.add(PromisesUtil.request(apiPromisesService.fetchPostersByUser(user.getId())));
                         }
+                        return dm.settle(list);
                     }
-
+                }, null, null)
+                .done(new DoneCallback<AllValues>() {
                     @Override
-                    public void onError(Throwable e) {
-                        Log.d(TAG, "onError", e);
-                    }
+                    public void onDone(AllValues result) {
 
-                    @Override
-                    public void onComplete() {
-                        Log.d(TAG, "Complete");
+                        for (OneValue oneValue : result) {
+                            List<Posts> posts = (List<Posts>) oneValue.getValue();
+                            if (posts != null && posts.size() > 0) {
+                                Log.d(TAG, "onNext - userId " + posts.get(0).getUserId() + "; posters " + posts.size() + ";");
+                            } else {
+                                Log.d(TAG, "onNext - empty posters");
+                            }
+                        }
+
+                        long stopTime = System.currentTimeMillis();
+                        Log.d(TAG, "Complete in " + Long.toString(stopTime - startTime));
                     }
-                })
-        );
-        */
+                });
     }
 }

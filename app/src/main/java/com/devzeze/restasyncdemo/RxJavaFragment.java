@@ -55,7 +55,7 @@ public class RxJavaFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_rx_java, container, false);
+        View view = inflater.inflate(R.layout.fragment_async, container, false);
 
         Button simpleCall = view.findViewById(R.id.simple_call);
         simpleCall.setOnClickListener((View) -> {
@@ -67,7 +67,7 @@ public class RxJavaFragment extends Fragment {
             performZipCall();
         });
 
-        Button flatmapCall = view.findViewById(R.id.flatmap_call);
+        Button flatmapCall = view.findViewById(R.id.map_call);
         flatmapCall.setOnClickListener((View v) -> {
             performFlatMapCall();
         });
@@ -131,6 +131,8 @@ public class RxJavaFragment extends Fragment {
 
     private void performFlatMapCall() {
 
+        long startTime = System.currentTimeMillis();
+
         disposable.add(apiRxJavaService.fetchAllUsers()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -167,7 +169,9 @@ public class RxJavaFragment extends Fragment {
 
                     @Override
                     public void onComplete() {
-                        Log.d(TAG, "Complete");
+
+                        long stopTime = System.currentTimeMillis();
+                        Log.d(TAG, "Complete in " + Long.toString(stopTime - startTime));
                     }
                 })
         );
